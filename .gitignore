@@ -1,0 +1,10 @@
+.gitignore
+
+# Files to be Ignored
+temp*
+*(Old)*
+
+# Folders to be Ignored
+.venv/
+.temp/
+.idea/
