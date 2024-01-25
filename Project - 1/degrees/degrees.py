@@ -89,21 +89,23 @@ def bfs(processing_queue: QueueFrontier, people_processed: set, movies_processed
         return None
 
     source = processing_queue.remove()
-    if source.action in people_processed:
+    if source.state in people_processed:
         return None
-    people_processed.add(source.action)
+    people_processed.add(source.state)
 
-    source_data = people[source.action]
+    source_data = people[source.state]
+    parents_leading_here = source.parent.copy()
     for movie in source_data["movies"]:
         if movie in movies_processed:
             continue
         movies_processed.add(movie)
         movie_data = movies[movie]
         for star in movie_data["stars"]:
-            star_node = Node(movie, source, star)
+            star_node = Node(star, parents_leading_here + [(movie, star)], None)
             if star == target:
                 return star_node
             processing_queue.add(star_node)
+
 
 def shortest_path(source, target):
     """
@@ -117,7 +119,7 @@ def shortest_path(source, target):
     movies_processed = set()
     people_processed = set()
 
-    source_node = Node(None, None, source)
+    source_node = Node(source, list(), None)
     processing_queue.add(source_node)
 
     target_node = None
@@ -125,10 +127,8 @@ def shortest_path(source, target):
     while not target_node and not processing_queue.empty():
         target_node = bfs(processing_queue, people_processed, movies_processed, target)
 
-    path_to_target = list()
-    while target_node and target_node.state:
-        path_to_target.append((target_node.state, target_node.action))
-        target_node = target_node.parent
+    print(target_node.parent)
+    path_to_target = target_node.parent
     path_to_target.reverse()
 
     if len(path_to_target) == 0:
