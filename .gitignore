@@ -3,6 +3,7 @@
 # Files to be Ignored
 temp*
 *(Old)*
+__pycache__
 
 # Folders to be Ignored
 .venv/

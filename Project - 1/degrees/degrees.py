@@ -84,6 +84,27 @@ def main():
             print(f"{i + 1}: {person1} and {person2} starred in {movie}")
 
 
+def bfs(processing_queue: QueueFrontier, people_processed: set, movies_processed: set, target: int):
+    if processing_queue.empty():
+        return None
+
+    source = processing_queue.remove()
+    if source.action in people_processed:
+        return None
+    people_processed.add(source.action)
+
+    source_data = people[source.action]
+    for movie in source_data["movies"]:
+        if movie in movies_processed:
+            continue
+        movies_processed.add(movie)
+        movie_data = movies[movie]
+        for star in movie_data["stars"]:
+            star_node = Node(movie, source, star)
+            if star == target:
+                return star_node
+            processing_queue.add(star_node)
+
 def shortest_path(source, target):
     """
     Returns the shortest list of (movie_id, person_id) pairs
@@ -92,8 +113,28 @@ def shortest_path(source, target):
     If no possible path, returns None.
     """
 
-    # TODO
-    raise NotImplementedError
+    processing_queue = QueueFrontier()
+    movies_processed = set()
+    people_processed = set()
+
+    source_node = Node(None, None, source)
+    processing_queue.add(source_node)
+
+    target_node = None
+
+    while not target_node and not processing_queue.empty():
+        target_node = bfs(processing_queue, people_processed, movies_processed, target)
+
+    path_to_target = list()
+    while target_node and target_node.state:
+        path_to_target.append((target_node.state, target_node.action))
+        target_node = target_node.parent
+    path_to_target.reverse()
+
+    if len(path_to_target) == 0:
+        return None
+
+    return path_to_target
 
 
 def person_id_for_name(name):
