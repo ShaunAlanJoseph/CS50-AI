@@ -4,6 +4,7 @@
 temp*
 *(Old)*
 __pycache__
+*zip
 
 # Folders to be Ignored
 .venv/
