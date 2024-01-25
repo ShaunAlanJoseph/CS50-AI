@@ -127,8 +127,8 @@ def shortest_path(source, target):
     while not target_node and not processing_queue.empty():
         target_node = bfs(processing_queue, people_processed, movies_processed, target)
 
+    print(target_node.parent)
     path_to_target = target_node.parent
-    path_to_target.reverse()
 
     if len(path_to_target) == 0:
         return None
