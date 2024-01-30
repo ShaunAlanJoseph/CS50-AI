@@ -115,6 +115,9 @@ def shortest_path(source, target):
     If no possible path, returns None.
     """
 
+    if source == target:
+        return list()
+
     processing_queue = QueueFrontier()
     movies_processed = set()
     people_processed = set()
@@ -127,7 +130,9 @@ def shortest_path(source, target):
     while not target_node and not processing_queue.empty():
         target_node = bfs(processing_queue, people_processed, movies_processed, target)
 
-    print(target_node.parent)
+    if target_node is None:
+        return None
+
     path_to_target = target_node.parent
 
     if len(path_to_target) == 0:
