@@ -58,16 +58,20 @@ def transition_model(corpus, page, damping_factor):
     a link at random chosen from all pages in the corpus.
     """
 
+    links_on_page = corpus[page]
+    if not links_on_page:
+        links_on_page = corpus.keys()
+    links_count = len(links_on_page)
+
+    pages_count = len(corpus)
+    to_random_page = (1 - damping_factor) / pages_count
+    through_link = damping_factor / links_count
+
     distribution = dict()
     for current_page in corpus.keys():
-        distribution[current_page] = (1 - damping_factor) / len(corpus)
-
-    links_on_page = corpus[page]
-    if len(links_on_page) == 0:
-        links_on_page = corpus.keys()
-    link_probability = damping_factor / len(links_on_page)
-    for current_page in links_on_page:
-        distribution[current_page] += link_probability
+        distribution[current_page] = to_random_page
+        if current_page in links_on_page:
+            distribution[current_page] += through_link
 
     return distribution
 
@@ -82,23 +86,21 @@ def sample_pagerank(corpus, damping_factor, n):
     PageRank values should sum to 1.
     """
 
-    page_frequency = dict()
-    current_model = dict()
-    page_count = len(corpus)
+    freq = dict()
+    distribution = dict()
+    pages_count = len(corpus)
     for page in corpus.keys():
-        page_frequency[page] = 0
-        current_model[page] = 1 / page_count
+        freq[page] = 0
+        distribution[page] = 1 / pages_count
 
     for i in range(n):
-        page_list = list(current_model.keys())
-        page_probabilities = list(current_model.values())
-        chosen_page = random.choices(page_list, weights=page_probabilities, k=1)[0]
-        page_frequency[chosen_page] += 1
-        current_model = transition_model(corpus, chosen_page, damping_factor)
+        chosen_page = random.choices(list(distribution.keys()), weights=list(distribution.values()), k=1)[0]
+        freq[chosen_page] += 1
+        distribution = transition_model(corpus, chosen_page, damping_factor)
 
     pagerank = dict()
-    for page, freq in page_frequency.items():
-        pagerank[page] = freq / n
+    for page, f in freq.items():
+        pagerank[page] = f / n
 
     return pagerank
 
@@ -113,14 +115,17 @@ def iterate_pagerank(corpus, damping_factor):
     PageRank values should sum to 1.
     """
 
-    pagerank = dict()
+    distribution = dict()
     inc_pages = dict()
-    page_count = len(corpus)
+    pages_count = len(corpus)
     for page in corpus.keys():
-        pagerank[page] = 1 / page_count
+        distribution[page] = 1 / pages_count
         inc_pages[page] = list()
 
-    for page, links in corpus.items():
+    for page in corpus.keys():
+        links = corpus[page]
+        if len(links) == 0:
+            links = corpus.keys()
         for link in links:
             inc_pages[link].append(page)
 
@@ -128,18 +133,17 @@ def iterate_pagerank(corpus, damping_factor):
     while significant_change:
         significant_change = False
         for page in corpus.keys():
-            part1 = (1 - damping_factor) / page_count
+            part1 = (1 - damping_factor) / pages_count
             part2 = 0
             for inc_page in inc_pages[page]:
-                part2 += pagerank[inc_page] / len(corpus[inc_page])
+                links_on_inc_page = len(corpus[inc_page]) if len(corpus[inc_page]) else len(corpus)
+                part2 += distribution[inc_page] / links_on_inc_page
             part2 *= damping_factor
-
-            if abs(pagerank[page] - (part1 + part2)) >= 0.0001:
+            if abs(distribution[page] - part1 - part2) > 0.0001:
                 significant_change = True
+            distribution[page] = part1 + part2
 
-            pagerank[page] = part1 + part2
-
-    return pagerank
+    return distribution
 
 
 if __name__ == "__main__":
