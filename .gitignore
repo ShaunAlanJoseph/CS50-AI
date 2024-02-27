@@ -3,6 +3,7 @@
 # Files to be Ignored
 temp*
 *(Old)*
+*(Initial)*
 __pycache__
 *zip
 
