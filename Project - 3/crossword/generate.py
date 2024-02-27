@@ -118,25 +118,19 @@ class CrosswordCreator():
         False if no revision was made.
         """
 
-        overlap = self.crossword.overlaps[x, y]
-        if overlap is None:
-            return False
-
-        i, j = overlap
         remove_these = list()
+        i, j = self.crossword.overlaps[x, y]
         for word in self.domains[x]:
-            corresp_val_found = False
+            found_val = False
             for w in self.domains[y]:
                 if word[i] == w[j]:
-                    corresp_val_found = True
+                    found_val = True
                     break
-
-            if not corresp_val_found:
+            if not found_val:
                 remove_these.append(word)
 
         for word in remove_these:
             self.domains[x].remove(word)
-
         return len(remove_these) > 0
 
     def ac3(self, arcs=None):
@@ -151,20 +145,19 @@ class CrosswordCreator():
 
         if arcs is None:
             arcs = list()
-            keys = list(self.domains.keys())
-            for x in range(len(keys) - 1):
-                for y in range(x + 1, len(keys)):
-                    arcs.append((keys[x], keys[y]))
+            for x in self.domains:
+                for y in self.crossword.neighbors(x):
+                    arcs.append((x, y))
 
-        while len(arcs):
+        while len(arcs) > 0:
             x, y = arcs.pop()
             if self.revise(x, y):
-                if len(self.domains[x]) == 0:
-                    return False
+                for z in self.crossword.neighbors(x):
+                    arcs.append((z, x))
 
-                for neighbor in self.crossword.neighbors(x):
-                    if neighbor != y:
-                        arcs.append((neighbor, x))
+        for words in self.domains.values():
+            if len(words) == 0:
+                return False
         return True
 
     def assignment_complete(self, assignment):
